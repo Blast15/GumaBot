@@ -1,6 +1,6 @@
 from ..utils.audit import audited
 from .core import Service
-from .errors import AlreadyClaimed, DomainError
+from .errors import DomainError
 
 
 class Economy(Service):
@@ -84,26 +84,6 @@ class Economy(Service):
                 result = {"item": "tint"}
             await self.save_receipt(tx, uid, key, "box", result)
             return result
-
-    @audited
-    async def verified_vote(self, uid, event_id, set_id):
-        pool = await self.cards.ensure_set(set_id)
-        async with self.db.transaction() as tx:
-            if await tx.one("SELECT 1 FROM vote_events WHERE id=:id", id=event_id):
-                raise AlreadyClaimed()
-            await self.cooldown(tx, uid, "vote", 43200)
-            await tx.execute(
-                "INSERT INTO vote_events VALUES (:id,:u,:t)", id=event_id, u=uid, t=self.now()
-            )
-            await self.money(tx, uid, 90, "VOTE", event_id)
-            await self.add_energy(tx, uid, 2, "VOTE")
-            await tx.execute(
-                "UPDATE users SET vote_streak=CASE WHEN last_vote_at>=:yesterday THEN vote_streak+1 ELSE 1 END,last_vote_at=:t WHERE discord_user_id=:u",
-                yesterday=self.now() - 86400,
-                t=self.now(),
-                u=uid,
-            )
-            return await self.cards.mint(tx, uid, self.rng.choice(pool)["id"], "vote")
 
     async def use_item(self, uid, item, key):
         if item not in ("booster", "cosmetic"):

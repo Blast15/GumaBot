@@ -7,13 +7,11 @@ import logging
 from gumabot.app import Application
 from gumabot.bot import GumaBot
 from gumabot.config import Settings
-from gumabot.jobs.webhook import Webhook
 from gumabot.logging_config import configure
 
 
 async def run(settings, check=False):
     app = Application(settings)
-    webhook = Webhook(app)
     try:
         await app.initialize()
         async with GumaBot(app) as bot:
@@ -23,11 +21,8 @@ async def run(settings, check=False):
                     f"OK: configuration, migrations, SQLite, game rules and {len(list(bot.tree.walk_commands()))} command entries. Discord connection not attempted."
                 )
                 return
-            if settings.webhook_enabled:
-                await webhook.start()
             await bot.start(settings.token, reconnect=True)
     finally:
-        await webhook.close()
         await app.close()
         logging.getLogger(__name__).info("Shutdown complete")
 

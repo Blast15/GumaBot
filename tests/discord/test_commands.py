@@ -70,7 +70,6 @@ async def test_collection_economy_commands_and_dashboard(app):
         await invoke(cog, "avatarchoice", avatar="Ranger")
         await invoke(cog, "leaderboard")
         await invoke(cog, "reminder", kind="daily", enabled=True)
-        await invoke(cog, "vote")
         await invoke(cog, "report")
         await invoke(
             cog, "setchannel", channel=SimpleNamespace(id=456, guild=SimpleNamespace(id=123))

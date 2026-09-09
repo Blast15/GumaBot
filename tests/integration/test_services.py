@@ -35,7 +35,7 @@ async def test_currency_ledger_immutable_and_rollback(app):
     assert (await app.cards.search(2, code))["owner_id"] == 2
 
 
-async def test_items_boxes_energy_and_vote(app):
+async def test_items_boxes_energy(app):
     await users(app, 1, 10000)
     await app.economy.buy_item(1, "box", 30, "box-buy")
     await app.economy.buy_item(1, "box", 30, "box-buy")
@@ -45,15 +45,6 @@ async def test_items_boxes_energy_and_vote(app):
     await app.economy.buy_pack(1, "energy")
     await app.economy.buy_pack(1, "energy")
     assert (await app.economy.balance(1))["energy"] == 4
-    await app.economy.verified_vote(1, "vote-event", "test")
-    assert (await app.economy.balance(1))["energy"] == 6
-    with pytest.raises(DomainError):
-        await app.economy.verified_vote(1, "vote-event", "test")
-    with pytest.raises(DomainError):
-        await app.economy.verified_vote(1, "new-vote", "test")
-    app.clock.advance(43200)
-    await app.economy.verified_vote(1, "second-vote", "test")
-    assert (await app.economy.balance(1))["vote_streak"] == 2
     with pytest.raises(DomainError):
         await app.economy.buy_item(1, "bad", 1, "bad")
 

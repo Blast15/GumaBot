@@ -73,7 +73,6 @@ Generated from registered discord.py slash commands. Arguments in brackets are o
 | `/trade` | `[user] [action] [trade_id] [kind] [reference] [amount]` | Invite, accept, inspect or update an escrow-backed trade |
 | `/upcoming` | `[set_id]` | View verified cached upcoming release dates |
 | `/useitem` | `item` | Use an energy booster or cosmetic badge |
-| `/vote` | `` | Get the Top.gg vote link; rewards require a verified webhook |
 | `/wishlist add` | `card_id` | Add a catalog card to your wishlist |
 | `/wishlist list` | `` | Show your wishlist |
 | `/wishlist remove` | `card_id` | Remove a catalog card from your wishlist |

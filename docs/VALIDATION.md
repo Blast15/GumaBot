@@ -8,14 +8,14 @@ Môi trường: Python 3.12.14 trên Linux. Vì không có Windows Python Launch
 
 | Kiểm tra | Kết quả thực tế |
 | --- | --- |
-| Regression với pytest và coverage toàn package `gumabot` | **84 passed, 0 failed, 0 skipped; 1 external test deselected** |
-| Coverage statement | **91.80%**, 2329 statements, 191 missed; ngưỡng 85% PASS |
-| Live TCGdex smoke | **1 passed**, 84 tests khác deselected |
+| Regression với pytest và coverage toàn package `gumabot` | **81 passed, 0 failed, 0 skipped; 1 external test deselected** |
+| Coverage statement | **91.74%**, 2227 statements, 184 missed; ngưỡng 85% PASS |
+| Live TCGdex smoke | **1 passed** ở bản trước; NOT RUN lại cho thay đổi gỡ tính năng này |
 | Ruff check | PASS |
-| Ruff format check | PASS — 48 Python files |
-| Config + startup `python main.py --check` | PASS, 78 command entries gồm 73 leaf slash commands và 5 command groups |
+| Ruff format check | PASS |
+| Config + startup `python main.py --check` | PASS, 77 command entries gồm 72 leaf slash commands và 5 command groups |
 | Chạy `python main.py` khi thiếu token | PASS expected failure: thông báo cấu hình đúng, exit 1, không traceback |
-| SQLite integrity_check + foreign_key_check | PASS, schema version 3, 54 tables |
+| SQLite integrity_check + foreign_key_check | PASS, schema version 4, 52 tables |
 | Empty-database startup | PASS trong integration tests |
 | Migration rollback và pre-upgrade backup | PASS trong integration tests |
 | Backup, restore có xác nhận và kiểm tra DB | PASS qua subprocess integration tests |
@@ -33,7 +33,7 @@ Pytest có một DeprecationWarning của dependency Discord liên quan `audioop
 - Bootstrap/config/logging UTF-8, SQLAlchemy async, SQLite WAL/FK/busy timeout, migrations và lifecycle cleanup.
 - TCGdex REST provider, normalized card model, single-flight, TTL, stale fallback, bounded retries, local catalog và image cache có validation.
 - Starter, packs/God Pack, energy, inventory/filter/sort, collection, completion milestones, chase meter, fuzzy find, card search.
-- Coins/Aura ledger, daily, verified vote inbox, giving, items, Mystery Box, virtual blackjack.
+- Coins/Aura ledger, daily, giving, items, Mystery Box, virtual blackjack.
 - Grading queues/certificates, fusion, tint, favorites, code swapping, showcase, wishlist, Pack Peek và server drops.
 - Escrow trades, atomic marketplace, bulk-sale confirmation, price history, auctions với fund reservation.
 - Decks, authoritative duel state, gym simulations, quizzes, image guessing, pickcard và Journey có bag/health/stages.
@@ -55,7 +55,6 @@ API tests không truy cập mạng: valid responses, 404/429/500/503/timeouts, i
 - Upcoming chỉ dùng ngày phát hành đã được cache đáng tin cậy. Không đảm bảo provider có dữ liệu tương lai. First-use sync có thể chậm; bot owner có thể prewarm set.
 - Rarity odds được chuẩn hóa trên các tier thực sự có trong set. Không tự tạo artwork hoặc card catalog giả để bổ sung tier còn thiếu.
 - Reminder dùng at-most-once delivery attempts; DM bị Discord chặn hoặc tiến trình dừng giữa claim/send có thể làm mất một thông báo, nhưng không mất tiền/card.
-- Top.gg callback thật cần public HTTPS routing. Webhook và signature đã được test local; delivery từ dashboard Top.gg thật chưa chạy. v0 legacy thiếu event ID ổn định; v1 là mặc định.
 - SQLite phù hợp một bot local. Restore yêu cầu dừng bot; không có distributed deployment hoặc tự động supervision của hệ điều hành.
 
 ## Nguồn
@@ -64,7 +63,9 @@ API tests không truy cập mạng: valid responses, 404/429/500/503/timeouts, i
 - https://tcgdex.dev/rest
 - https://api.tcgdex.net/v2/en
 - https://discordpy.readthedocs.io/en/stable/intents.html
-- https://docs.top.gg/webhooks/overview
-- https://docs.top.gg/webhooks/events
 - https://top.gg/bot/1362516883785515199/commands
 - https://thepokebot.com/faq
+
+## Thay đổi mới nhất
+
+Theo yêu cầu chủ bot, đã gỡ command vote, reward service, Top.gg listener/config/worker và reminder liên quan. Migration v4 dọn schema cũ, có backup trước nâng cấp; giữ số dư và immutable ledger. Tests mới kiểm tra upgrade v3 → v4, bảo toàn tiền/lịch sử, không còn command trong registry và từ chối reminder đã gỡ.
