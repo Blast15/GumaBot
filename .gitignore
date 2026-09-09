@@ -1,3 +1,22 @@
+.env
+.venv/
+.deps/
+__pycache__/
+*.py[cod]
+data/
+logs/
+backups/
+*.db
+*.db-wal
+*.db-shm
+.pytest_cache/
+.hypothesis/
+.ruff_cache/
+.coverage*
+htmlcov/
+
+pytest-of-root/
+# Original repository ignore rules retained below.
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
@@ -195,9 +214,9 @@ cython_debug/
 .abstra/
 
 # Visual Studio Code
-#   Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore 
+#   Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore
 #   that can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
-#   and can be added to the global gitignore or merged into this file. However, if you prefer, 
+#   and can be added to the global gitignore or merged into this file. However, if you prefer,
 #   you could uncomment the following to ignore the entire vscode folder
 # .vscode/
 # Temporary file for partial code execution
@@ -216,3 +235,5 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# GumaBot local runtime files
