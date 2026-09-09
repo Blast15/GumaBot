@@ -123,6 +123,19 @@ MIGRATIONS.append(
 )
 
 
+# Keep published migrations intact; remove the retired feature on both upgrades and fresh installs.
+MIGRATIONS.append(
+    [
+        "DELETE FROM cooldowns WHERE kind='vote'",
+        "DELETE FROM reminder_preferences WHERE kind='vote'",
+        "DROP TABLE vote_inbox",
+        "DROP TABLE vote_events",
+        "ALTER TABLE users DROP COLUMN vote_streak",
+        "ALTER TABLE users DROP COLUMN last_vote_at",
+    ]
+)
+
+
 def backup(path: Path, destination: Path | None = None) -> Path:
     if not path.exists():
         raise ValueError("Database does not exist")

@@ -82,7 +82,7 @@ async def app(tmp_path):
         provider=provider,
         cards=cards,
         http=client,
-        settings=SimpleNamespace(featured_set="test", topgg_bot_id="123", webhook_secret="x" * 32),
+        settings=SimpleNamespace(featured_set="test"),
     )
     for name, cls in [("economy", Economy), ("claims", Claims), ("gameplay", Gameplay)]:
         setattr(result, name, cls(db, clock, cards, random.Random(42)))

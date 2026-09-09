@@ -47,7 +47,7 @@ async def send(interaction, title, value, view=None, ephemeral=True, file=None):
 GUIDE = [
     "Run /start once: 150 coins and a free five-card pack with a guaranteed Holo. /play opens your dashboard.",
     "Use /openpack with an optional set ID. Each pack has five cards. God Packs contain only Holo-or-higher cards. Odds are GumaBot game odds, not physical booster odds.",
-    "Natural energy regenerates one point every two hours, up to three. /buypack adds one energy for 40 coins. Purchased and vote energy can exceed the natural cap.",
+    "Natural energy regenerates one point every two hours, up to three. /buypack adds one energy for 40 coins. Purchased energy can exceed the natural cap.",
     "Explore /inventory, /collection and /missing. Public codes identify individual cards. Fusion consumes three raw duplicates to improve condition.",
     "Submit /grade in economy, standard, fast or express lanes. Four subgrades produce a grade from 1 to 10. Locked cards cannot be transferred.",
     "Claim /daily once every rolling 24 hours. Use /market, /auction and /trade. Auction bids and trade offers reserve funds immediately.",

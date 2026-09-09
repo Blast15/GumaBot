@@ -19,8 +19,9 @@ async def test_empty_startup_and_command_serialization(tmp_path):
         async with GumaBot(app) as bot:
             await bot.register()
             names = {c.qualified_name for c in bot.tree.walk_commands()}
-            required = "start play guide help avatarchoice bag balance blackjack cardtrend checkgrade collection cooldowns daily deck duel duelprofile find fuse give grade gym inventory items itemshop buyitem journey leaderboard level missing mysterybox namepokemon openpack packs buypack resetpack pickcard quiz quizstats reminder report search sell serverleaderboard setchannel setcompletion showcase swapcodes tint trade upcoming vote wishlist market shop auction season".split()
+            required = "start play guide help avatarchoice bag balance blackjack cardtrend checkgrade collection cooldowns daily deck duel duelprofile find fuse give grade gym inventory items itemshop buyitem journey leaderboard level missing mysterybox namepokemon openpack packs buypack resetpack pickcard quiz quizstats reminder report search sell serverleaderboard setchannel setcompletion showcase swapcodes tint trade upcoming wishlist market shop auction season".split()
             assert set(required) <= names
+            assert "vote" not in names
             for command in bot.tree.get_commands():
                 data = command.to_dict(bot.tree)
                 assert data["name"] and data["description"]
@@ -65,8 +66,6 @@ def test_migration_failure_rolls_back(tmp_path):
         {"token": ""},
         {"api_base": "http://evil.test"},
         {"language": "../en"},
-        {"webhook_enabled": True},
-        {"webhook_port": 0},
     ],
 )
 def test_config_validation(change):

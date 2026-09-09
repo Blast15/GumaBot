@@ -50,7 +50,7 @@ class Progression(Service):
             )
 
     async def reminder(self, uid, kind, enabled):
-        if kind not in ("daily", "vote", "energy", "grading", "auction", "pickcard"):
+        if kind not in ("daily", "energy", "grading", "auction", "pickcard"):
             raise DomainError("Unknown reminder type.")
         async with self.db.transaction() as tx:
             await self.user(tx, uid)

@@ -22,37 +22,12 @@ class Jobs:
             self.app.claims.expire,
             self.app.gameplay.expire,
             self.app.progression.rollover,
-            self.process_votes,
             self.reminders,
         ):
             try:
                 await operation()
             except Exception:
                 log.exception("Background job failed: %s", operation.__name__)
-
-    async def process_votes(self):
-        from ..services.errors import DomainError, ProviderUnavailable
-
-        async with self.app.db.read() as tx:
-            votes = await tx.all(
-                "SELECT * FROM vote_inbox WHERE status='pending' ORDER BY received_at LIMIT 10"
-            )
-        for vote in votes:
-            try:
-                await self.app.economy.verified_vote(
-                    vote["user_id"], vote["id"], self.app.settings.featured_set
-                )
-                status = "completed"
-            except ProviderUnavailable:
-                continue
-            except DomainError:
-                status = "ignored"
-            async with self.app.db.transaction() as tx:
-                await tx.execute(
-                    "UPDATE vote_inbox SET status=:s WHERE id=:id AND status='pending'",
-                    s=status,
-                    id=vote["id"],
-                )
 
     async def run(self):
         await self.bot.wait_until_ready()

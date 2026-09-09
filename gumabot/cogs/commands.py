@@ -58,7 +58,7 @@ class GameCommands(commands.Cog):
             i,
             "GumaBot",
             {k: user[k] for k in ("coins", "aura", "xp", "level", "energy", "energy_updated_at")}
-            | {"featured_set": self.app.settings.featured_set, "daily": "/daily", "vote": "/vote"},
+            | {"featured_set": self.app.settings.featured_set, "daily": "/daily"},
             buttons(
                 [
                     (x.title(), f"dash:{i.user.id}:{x}")
@@ -560,19 +560,6 @@ class GameCommands(commands.Cog):
                     )
                 ]
             ),
-        )
-
-    @app_commands.command(
-        name="vote", description="Get the Top.gg vote link; rewards require a verified webhook"
-    )
-    async def vote(self, i: discord.Interaction):
-        bot_id = self.app.settings.topgg_bot_id
-        await send(
-            i,
-            "Vote",
-            f"https://top.gg/bot/{bot_id}/vote\nVerified votes award 90 coins, 2 energy and one card every 12 hours."
-            if bot_id
-            else "Top.gg is not configured for this installation.",
         )
 
     @app_commands.command(name="useitem", description="Use an energy booster or cosmetic badge")
