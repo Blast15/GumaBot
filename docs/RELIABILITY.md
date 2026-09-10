@@ -7,7 +7,7 @@ This records code changes and separates them from deployment evidence.
 |---|---|---|
 | 1 | CI/CD | Push/PR/manual CI: Python 3.12, Ruff, formatting, mypy, pytest, branch coverage >=85%, startup, SQLite, build and short soak. No automatic production deployment. |
 | 2 | Live Discord E2E | Dedicated-guild login/permission/sync smoke script and full human-interaction protocol provided. **NOT RUN:** no test token/guild supplied. |
-| 3 | Windows | Windows runner includes full suite and Python Launcher startup. Actual runner outcome is available in Actions after push. |
+| 3 | Windows | Windows runner includes full suite and Python Launcher startup. Linux and Windows CI passed in run 34458904584, including Python Launcher, package build and short soak. |
 | 4 | 24–72h soak | Runnable offline wall-clock harness with resource budgets. Only the 30-second smoke was run locally; long and live runs remain **NOT RUN**. |
 | 5 | Dependency lock/audit | Production/development transitive hash locks, pip-tools inputs, Dependabot and weekly audit. Audit found vulnerable pytest 8.4.2; upgraded to 9.1.1. |
 | 6 | Type checking | Mypy checks all 42 application source files including untyped bodies. Not a fully strict/fully annotated codebase. Fixed concrete None/channel/callback issues. |
@@ -48,7 +48,7 @@ measurement, not a sustained production performance result. Startup registered 7
 command entries; SQLite integrity and foreign keys passed at schema version 5.
 All four historical migrations remain unchanged; the fifth adds reminder state.
 
-Final local result: **106 passed, 1 external test deselected; branch coverage 89.50%**.
+Final local result: **107 passed, 1 external test deselected; branch coverage 89.53%**.
 Mypy passed all 42 application files and dependency audit found no known vulnerabilities.
 See CI for final per-platform test/coverage/audit results. Full Discord interactions,
 Gateway reconnect/global sync, 24–72h soak, real off-site backup/restore and HA have
@@ -60,3 +60,9 @@ not been validated in this session. Branch protection is not enabled automatical
 - CI: https://github.com/Blast15/GumaBot/actions
 - Operations: https://github.com/Blast15/GumaBot/blob/main/docs/OPERATIONS.md
 - Workflow: https://github.com/Blast15/GumaBot/blob/main/.github/workflows/ci.yml
+
+
+First remote CI run: https://github.com/Blast15/GumaBot/actions/runs/34458904584
+— Linux, Windows and security jobs all passed for commit `42782a4`.
+A subsequent reminder regression hardens stale scan/claim state using SQLite
+`UPDATE ... RETURNING`; the local suite then passed 107 tests at 89.53% coverage.

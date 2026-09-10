@@ -92,11 +92,11 @@ class Reminders:
             token = secrets.token_hex(16)
             now = self.app.clock.timestamp()
             async with self.app.db.transaction() as tx:
-                result = await tx.execute(
+                claimed = await tx.one(
                     "UPDATE reminder_deliveries SET status='claimed',attempts=attempts+1,"
                     "next_attempt_at=:lease,claim_token=:token WHERE user_id=:u AND kind=:k "
                     "AND status IN ('pending','claimed') AND next_attempt_at<=:t AND attempts<:maximum "
-                    "AND EXISTS(SELECT 1 FROM reminder_preferences p WHERE p.user_id=:u AND p.kind=:k AND p.enabled=1)",
+                    "AND EXISTS(SELECT 1 FROM reminder_preferences p WHERE p.user_id=:u AND p.kind=:k AND p.enabled=1) RETURNING *",
                     u=row["user_id"],
                     k=row["kind"],
                     lease=now + LEASE_SECONDS,
@@ -104,8 +104,9 @@ class Reminders:
                     t=now,
                     maximum=MAX_ATTEMPTS,
                 )
-            if not result.rowcount:
+            if not claimed:
                 continue
+            row = claimed
             try:
                 async with asyncio.timeout(30):
                     user = self.bot.get_user(row["user_id"]) or await self.bot.fetch_user(
@@ -118,9 +119,9 @@ class Reminders:
             except Exception as exc:
                 terminal = (
                     isinstance(exc, (discord.Forbidden, discord.NotFound))
-                    or row["attempts"] + 1 >= MAX_ATTEMPTS
+                    or row["attempts"] >= MAX_ATTEMPTS
                 )
-                delay = min(3600, 60 * 2 ** row["attempts"])
+                delay = min(3600, 60 * 2 ** (row["attempts"] - 1))
                 async with self.app.db.transaction() as tx:
                     await tx.execute(
                         "UPDATE reminder_deliveries SET status=:s,next_attempt_at=:t,claim_token=NULL "
@@ -136,7 +137,7 @@ class Reminders:
                     extra={
                         "event": "reminder_failure",
                         "kind": row["kind"],
-                        "attempt": row["attempts"] + 1,
+                        "attempt": row["attempts"],
                         "terminal": terminal,
                         "error_type": type(exc).__name__,
                     },

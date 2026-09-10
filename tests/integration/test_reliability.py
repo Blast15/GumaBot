@@ -187,3 +187,25 @@ def test_catalog_quiz_diversity_and_legacy_fallback():
     assert len(seen) > 300
     assert question_at({"order": [0]}, 0)[2] == 1
     assert isinstance(Service(None, None).rng, random.SystemRandom)
+
+
+async def test_reminder_uses_attempt_count_at_claim_not_scan(app, monkeypatch):
+    from gumabot.database.db import Transaction
+
+    await ready_reminder(app)
+    jobs = Jobs(bot_for(app, AsyncMock(side_effect=OSError("offline"))))
+    await jobs.reminder_worker.enqueue()
+    original = Transaction.all
+
+    async def stale_scan(tx, sql, **params):
+        rows = await original(tx, sql, **params)
+        if sql.startswith("SELECT d.* FROM reminder_deliveries"):
+            # A slow scan can observe attempts=0, while another worker subsequently
+            # consumes four attempts before this worker acquires the claim.
+            await tx.execute("UPDATE reminder_deliveries SET attempts=4")
+        return rows
+
+    monkeypatch.setattr(Transaction, "all", stale_scan)
+    await jobs.reminders()
+    row = await delivery(app)
+    assert row["attempts"] == 5 and row["status"] == "failed"
