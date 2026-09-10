@@ -13,12 +13,12 @@ This records code changes and separates them from deployment evidence.
 | 6 | Type checking | Mypy checks all 42 application source files including untyped bodies. Not a fully strict/fully annotated codebase. Fixed concrete None/channel/callback issues. |
 | 7 | Ruff rules | Added B, ASYNC, UP, SIM, RUF, S. Narrow documented exceptions for tests, natural-language punctuation, validated SQL identifiers and one explicit fallback. |
 | 8 | Branch coverage | Enabled and enforced >=85%; no coverage exclusion to bypass the gate. |
-| 9 | Reminder reliability | Durable pending/claimed/sent/failed state, leases, timeout, five attempts, backoff, opt-out and fair paging; success timestamp only after DM. Regression tests cover failure/restart/race/starvation. |
+| 9 | Reminder reliability | Durable pending/claimed/sent/failed state, leases, timeout, five attempts, backoff, opt-out and fair paging; success timestamp only after DM. Regression tests cover failure/restart/race/starvation. A crash after Discord accepts a DM but before SQLite records `sent` can duplicate the reminder, so this is **not exactly-once** delivery. |
 | 10 | SQLite scaling | Retained single-instance SQLite; operational limits and PostgreSQL migration boundary documented. No unsupported multi-instance/HA claim. |
 | 11 | Off-site backup | rclone upload, SQLite validation, download verification and bounded verified generations. Mock tests verify ordering and failure safety. Remote credentials/scheduler/real restore remain **NOT CONFIGURED/NOT RUN**. |
 | 12 | Server drop | Shared create_drop service samples rarity using pack odds, then a random card in that tier. No longer selects first catalog ID. |
 | 13 | Quiz bank | Questions generated from catalog facts; snapshot saved with each session; old sessions remain compatible. Diversity test exercises >300 distinct prompts. Small catalogs retain static fallback. |
-| 14 | Pickcard duplicates | Sampling without replacement; one/two-card pools and invalid choice indices covered. |
+| 14 | Pickcard duplicates | Sampling without replacement; one/two-card pools and invalid choice indices covered. User-facing command/error wording reflects the actual 1–3 available choices. |
 | 15 | Production RNG | SystemRandom defaults in shared services/provider; seeded injection retained in tests. Not a claim of externally provable fairness. |
 | 16 | TCGdex 429 | Numeric/date Retry-After, jitter, total budget, shared cooldown, circuit breaker and stale cache. Regression tests include long/invalid headers and repeated failures. |
 | 17 | Observability | JSON logs for command/domain/worker/API/cache/reminder/Gateway/DB events; no external collector/dashboard installed. |

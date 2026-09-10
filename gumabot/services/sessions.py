@@ -88,8 +88,9 @@ class Sessions(Service):
                 await self.quiz_reward(tx, uid, correct, key)
                 result = {"correct": correct, "answer": state["answer"]}
             elif kind == "pickcard":
-                if str(answer) not in {str(i) for i in range(len(state["choices"]))}:
-                    raise DomainError("Choose card 1, 2 or 3.")
+                count = len(state["choices"])
+                if str(answer) not in {str(i) for i in range(count)}:
+                    raise DomainError(f"Choose one of the {count} available cards.")
                 result = {
                     "card": await self.cards.mint(
                         tx, uid, state["choices"][int(answer)], "pickcard"

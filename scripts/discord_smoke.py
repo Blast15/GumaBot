@@ -13,6 +13,18 @@ from gumabot.app import Application
 from gumabot.bot import GumaBot
 from gumabot.config import Settings
 
+REQUIRED_COMMANDS = {
+    "start",
+    "openpack",
+    "trade",
+    "market",
+    "auction",
+    "quiz",
+    "pickcard",
+    "blackjack",
+    "duel",
+}
+
 
 async def smoke(channel_id: int):
     settings = Settings.load()
@@ -45,9 +57,13 @@ async def smoke(channel_id: int):
             bot.tree.copy_global_to(guild=guild)
             commands = await bot.tree.sync(guild=guild)
             names = {c.name for c in commands}
-            if not {"start", "openpack", "trade", "market", "auction"} <= names:
-                raise RuntimeError("Required commands are absent after guild sync")
+            missing_commands = sorted(REQUIRED_COMMANDS - names)
+            if missing_commands:
+                raise RuntimeError(
+                    "Required commands are absent after guild sync: " + ", ".join(missing_commands)
+                )
             print("PASS: bot login, test guild access, channel permissions, guild command sync")
+            print("PASS: required commands: " + ", ".join(sorted(REQUIRED_COMMANDS)))
             print(
                 "NOT TESTED: Gateway/reconnect, user interactions, global sync, restart/resume. See docs/OPERATIONS.md"
             )

@@ -48,7 +48,7 @@ Generated from registered discord.py slash commands. Arguments in brackets are o
 | `/openpack` | `[set_id]` | Open five cards using one energy |
 | `/packs` | `[set_id]` | List provider card sets |
 | `/peek` | `code` | Offer a spare duplicate for another player to claim |
-| `/pickcard` | `[session]` | Choose one of three cards every thirty minutes |
+| `/pickcard` | `[session]` | Choose one of up to three cards every thirty minutes |
 | `/play` | `` | Open your trainer dashboard |
 | `/quests` | `[set_id]` | View three daily quests and automatic rewards |
 | `/quiz` | `[session]` | Answer up to ten questions in a persisted session |

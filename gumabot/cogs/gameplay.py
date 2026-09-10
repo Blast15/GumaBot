@@ -52,7 +52,7 @@ class GameplayCommands(CommandBase):
         await show_session(i, self.app, key)
 
     @app_commands.command(
-        name="pickcard", description="Choose one of three cards every thirty minutes"
+        name="pickcard", description="Choose one of up to three cards every thirty minutes"
     )
     async def pickcard(self, i: discord.Interaction, session: str = ""):
         await self.defer(i)
