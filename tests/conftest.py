@@ -1,6 +1,6 @@
 import json
 import random
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 
 import httpx
@@ -25,7 +25,7 @@ class FakeClock(Clock):
         self.value = 1788220800
 
     def now(self):
-        return datetime.fromtimestamp(self.value, timezone.utc)
+        return datetime.fromtimestamp(self.value, UTC)
 
     def advance(self, seconds):
         self.value += seconds

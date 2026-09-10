@@ -2,6 +2,7 @@
 
 import functools
 import logging
+import time
 
 log = logging.getLogger("gumabot.events")
 
@@ -9,8 +10,22 @@ log = logging.getLogger("gumabot.events")
 def audited(operation):
     @functools.wraps(operation)
     async def wrapped(*args, **kwargs):
-        result = await operation(*args, **kwargs)
-        log.info("Completed %s", operation.__qualname__)
-        return result
+        started = time.monotonic()
+        status = "ok"
+        try:
+            return await operation(*args, **kwargs)
+        except BaseException:
+            status = "error"
+            raise
+        finally:
+            log.info(
+                "Domain operation",
+                extra={
+                    "event": "domain_operation",
+                    "operation": operation.__qualname__,
+                    "status": status,
+                    "duration_ms": (time.monotonic() - started) * 1000,
+                },
+            )
 
     return wrapped

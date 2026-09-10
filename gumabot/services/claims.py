@@ -58,11 +58,27 @@ class Claims(Service):
             await self.transferred(tx, uid, offer["card_id"])
             await self.money(tx, offer["owner_id"], 10, "PEEK", key)
 
-    async def create_drop(self, guild, catalog):
+    async def create_drop(self, guild, catalog=None):
         async with self.db.transaction() as tx:
             row = await tx.one("SELECT * FROM guilds WHERE id=:g", g=guild)
             if not row or not row["drop_enabled"] or row["last_drop_at"] > self.now() - 3600:
                 raise DomainError("Drops are unavailable or on cooldown.")
+            if catalog is None:
+                # Choose rarity first so a large common pool cannot distort tier odds.
+                groups = await tx.all(
+                    "SELECT rarity,COUNT(*) AS n FROM card_catalog GROUP BY rarity"
+                )
+                if not groups:
+                    raise DomainError("No cards are available for a drop.")
+                from .rules import ODDS
+
+                group = self.rng.choices(groups, weights=[ODDS[g["rarity"]] for g in groups])[0]
+                card = await tx.one(
+                    "SELECT id FROM card_catalog WHERE rarity=:r ORDER BY id LIMIT 1 OFFSET :offset",
+                    r=group["rarity"],
+                    offset=self.rng.randrange(group["n"]),
+                )
+                catalog = card["id"]
             key = self.identifier()
             await tx.execute(
                 "UPDATE guilds SET last_drop_at=:t,activity=0 WHERE id=:g", t=self.now(), g=guild

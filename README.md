@@ -156,3 +156,16 @@ Only public functionality inspired this implementation. No reference-bot code, p
 - REST base: https://api.tcgdex.net/v2/en
 - SDK reference: https://tcgdex.dev/sdks/python
 - Discord intents: https://discordpy.readthedocs.io/en/stable/intents.html
+
+
+## Reliability and operations
+
+Python 3.12 dependencies are pinned with hashes. Install with
+`py -m pip install --require-hashes -r requirements.txt` (or `requirements-dev.txt`
+for development). GitHub Actions checks Linux and Windows, branch coverage >=85%,
+Ruff, mypy, migrations/startup, SQLite integrity, packaging and dependency audit.
+
+See [docs/OPERATIONS.md](docs/OPERATIONS.md) for reminder retry semantics, live
+Discord E2E, 24–72h soak commands, verified off-site backup/retention, JSON logs and
+single-instance SQLite limits. These procedures require deployment configuration;
+a passing offline test suite is not proof of a live production deployment.

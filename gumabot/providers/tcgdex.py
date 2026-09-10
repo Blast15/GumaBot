@@ -1,10 +1,13 @@
 import asyncio
 import json
 import logging
+import math
 import random
 import re
+import time
 from dataclasses import asdict
 from datetime import date
+from email.utils import parsedate_to_datetime
 
 import httpx
 
@@ -23,7 +26,9 @@ class TCGdexProvider(CardDataProvider):
         self.base = base.rstrip("/").rsplit("/", 1)[0] + "/" + language
         self.semaphore = asyncio.Semaphore(5)
         self.inflight = {}
-        self.rng = rng or random.Random()
+        self.failures = 0
+        self.blocked_until = 0.0
+        self.rng = rng if rng is not None else random.SystemRandom()
 
     @staticmethod
     def identifier(value):
@@ -51,6 +56,21 @@ class TCGdexProvider(CardDataProvider):
             and isinstance(card_set.get("name"), str)
         )
 
+    def retry_delay(self, response, attempt):
+        delay = 0.5 * 2**attempt
+        header = response.headers.get("Retry-After")
+        if header:
+            try:
+                value = float(header)
+            except ValueError:
+                try:
+                    value = parsedate_to_datetime(header).timestamp() - self.clock.timestamp()
+                except (ValueError, TypeError, OverflowError):
+                    value = 0
+            if math.isfinite(value):
+                delay = max(delay, value)
+        return max(0.0, delay) + self.rng.random() * 0.25
+
     async def _fetch(self, path, ttl):
         key = self.base + path
         async with self.db.read() as tx:
@@ -64,7 +84,14 @@ class TCGdexProvider(CardDataProvider):
             except (ValueError, TypeError):
                 pass
             if cached is not None and row["expires_at"] > self.clock.timestamp():
+                log.info("Provider cache hit", extra={"event": "cache_hit"})
                 return cached
+        if time.monotonic() < self.blocked_until:
+            if cached is not None:
+                return cached
+            raise ProviderUnavailable()
+        log.info("Provider cache miss", extra={"event": "cache_miss"})
+        started = time.monotonic()
         try:
             async with asyncio.timeout(40):
                 for attempt in range(3):
@@ -75,13 +102,21 @@ class TCGdexProvider(CardDataProvider):
                                 response = await self.client.get(
                                     self.base.rsplit("/", 1)[0] + "/en" + path
                                 )
-                        if response.status_code == 429 or response.status_code in (
-                            500,
-                            502,
-                            503,
-                            504,
-                        ):
-                            raise httpx.ReadTimeout("Temporary upstream error")
+                        if response.status_code in (429, 500, 502, 503, 504):
+                            delay = self.retry_delay(response, attempt)
+                            if response.status_code == 429:
+                                # Honor Retry-After across requests, even when it exceeds this call's budget.
+                                self.blocked_until = max(
+                                    self.blocked_until, time.monotonic() + delay
+                                )
+                            if attempt == 2 or delay >= 40 - (time.monotonic() - started):
+                                raise httpx.HTTPStatusError(
+                                    "Upstream retry budget exhausted",
+                                    request=response.request,
+                                    response=response,
+                                )
+                            await asyncio.sleep(delay)
+                            continue
                         response.raise_for_status()
                         data = response.json()
                         if not self.valid_payload(path, data):
@@ -93,13 +128,28 @@ class TCGdexProvider(CardDataProvider):
                                 payload=json.dumps(data),
                                 expires=self.clock.timestamp() + ttl,
                             )
+                        self.failures = 0
+                        log.info(
+                            "Provider request complete",
+                            extra={
+                                "event": "api_request",
+                                "duration_ms": (time.monotonic() - started) * 1000,
+                                "status": response.status_code,
+                            },
+                        )
                         return data
                     except (httpx.TimeoutException, httpx.NetworkError):
                         if attempt == 2:
                             raise
                         await asyncio.sleep(0.2 * 2**attempt + self.rng.random() * 0.1)
         except (httpx.HTTPError, ValueError, TimeoutError):
-            log.warning("Card provider unavailable for resource %s", path)
+            self.failures += 1
+            if self.failures >= 3:
+                self.blocked_until = max(self.blocked_until, time.monotonic() + 30)
+            log.warning(
+                "Card provider unavailable",
+                extra={"event": "api_error", "duration_ms": (time.monotonic() - started) * 1000},
+            )
             if cached is not None:
                 return cached
             raise ProviderUnavailable() from None

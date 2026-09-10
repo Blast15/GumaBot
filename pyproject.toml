@@ -1,8 +1,43 @@
+[build-system]
+requires = ["setuptools==84.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gumabot"
+version = "0.2.0"
+description = "Discord collectible card game with durable SQLite transactions"
+readme = "README.md"
+requires-python = ">=3.12"
+dynamic = ["dependencies"]
+
+[project.urls]
+Repository = "https://github.com/Blast15/GumaBot"
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.in"]}
+
+[tool.setuptools.packages.find]
+include = ["gumabot*"]
+namespaces = true
+
 [tool.ruff]
 target-version = "py312"
 line-length = 100
 [tool.ruff.lint]
-select = ["E4", "E7", "E9", "F", "I"]
+select = ["E4", "E7", "E9", "F", "I", "B", "ASYNC", "UP", "SIM", "RUF", "S"]
+# Natural-language punctuation is intentional in player-facing text.
+ignore = ["RUF001", "RUF002", "RUF003"]
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S311"]
+# Dummy startup credentials and a fixed argv subprocess, never a live token.
+"tests/integration/test_startup.py" = ["S105", "S106", "S603"]
+# These SQL identifiers are static schema constants or validated allowlists.
+"gumabot/database/migrations.py" = ["S608"]
+"gumabot/services/core.py" = ["S608"]
+"gumabot/services/progression.py" = ["S608"]
+"gumabot/services/trades.py" = ["S608"]
+# Keep image fallback exceptions explicit for readability.
+"gumabot/cogs/collection.py" = ["SIM105"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
@@ -11,3 +46,15 @@ addopts = "-m 'not external'"
 markers = ["external: optional live API requests"]
 [tool.coverage.run]
 source = ["gumabot"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 85
+
+[tool.mypy]
+python_version = "3.12"
+files = ["gumabot", "main.py"]
+check_untyped_defs = true
+warn_unused_ignores = true
+no_implicit_optional = true
+explicit_package_bases = true

@@ -42,10 +42,8 @@ def main():
     except ValueError as exc:
         print(f"ERROR: {exc}")
         return 1
-    except Exception as exc:
-        logging.getLogger(__name__).error(
-            "Startup failed (%s). Check configuration and connectivity.", type(exc).__name__
-        )
+    except Exception:
+        logging.getLogger(__name__).exception("Startup failed")
         return 1
     return 0
 

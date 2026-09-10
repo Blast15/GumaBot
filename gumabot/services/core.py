@@ -1,7 +1,7 @@
 import json
 import random
 import secrets
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from .errors import CardLocked, CardNotOwned, CooldownActive, DomainError, InsufficientFunds
 from .rules import energy, level_for
@@ -10,7 +10,7 @@ from .rules import energy, level_for
 class Service:
     def __init__(self, db, clock, rng=None):
         self.db, self.clock = db, clock
-        self.rng = rng or random.Random()
+        self.rng = rng if rng is not None else random.SystemRandom()
 
     def now(self):
         return self.clock.timestamp()
@@ -201,7 +201,7 @@ class Service:
                 )
         now = self.clock.now()
         season = now.strftime("%Y-%m")
-        end = datetime(now.year + (now.month == 12), now.month % 12 + 1, 1, tzinfo=timezone.utc)
+        end = datetime(now.year + (now.month == 12), now.month % 12 + 1, 1, tzinfo=UTC)
         await tx.execute(
             "INSERT INTO seasons VALUES (:id,:end,0) ON CONFLICT DO NOTHING",
             id=season,

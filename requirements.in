@@ -1,0 +1,7 @@
+discord.py>=2.5,<3
+SQLAlchemy>=2.0.36,<3
+aiosqlite>=0.20,<1
+httpx[socks]>=0.27,<1
+aiohttp>=3.11,<4
+Pillow>=11,<13
+python-dotenv>=1.0,<2

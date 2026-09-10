@@ -28,7 +28,7 @@ class GumaBot(commands.Bot):
         self.app = app
         self.jobs = Jobs(self)
         self.activity_counts = {}
-        self.tree.on_error = self.command_error
+        self.tree.error(self.command_error)
 
     async def register(self):
         await self.add_cog(GameCommands(self))
@@ -54,9 +54,29 @@ class GumaBot(commands.Bot):
         self.jobs.start()
 
     async def on_ready(self):
-        log.info("GumaBot ready as %s", self.user.id)
+        log.info("GumaBot ready as %s", self.user.id if self.user else None)
+
+    async def on_disconnect(self):
+        log.warning("Discord disconnected", extra={"event": "discord_disconnect"})
+
+    async def on_resumed(self):
+        log.info("Discord session resumed", extra={"event": "discord_resume"})
+
+    async def on_app_command_completion(self, interaction, command):
+        duration = (discord.utils.utcnow() - interaction.created_at).total_seconds() * 1000
+        log.info(
+            "Command completed",
+            extra={
+                "event": "command_complete",
+                "operation": command.qualified_name,
+                "duration_ms": duration,
+            },
+        )
 
     async def command_error(self, interaction, error):
+        log.warning(
+            "Command error", extra={"event": "command_error", "error_type": type(error).__name__}
+        )
         error = getattr(error, "original", error)
         if isinstance(error, DomainError):
             message = str(error)
@@ -101,6 +121,8 @@ class GumaBot(commands.Bot):
                 return
             await i.response.defer(ephemeral=True)
             cog = self.get_cog("GameCommands")
+            if not isinstance(cog, GameCommands):
+                raise DomainError("Commands are not ready yet.")
             if (
                 action
                 in (
@@ -228,11 +250,10 @@ class GumaBot(commands.Bot):
                 await tx.execute(
                     "UPDATE guilds SET activity=activity+1 WHERE id=:g", g=message.guild.id
                 )
-                card = await tx.one("SELECT id FROM card_catalog ORDER BY id LIMIT 1")
-            if row["activity"] >= 49 and card:
-                drop = await self.app.claims.create_drop(message.guild.id, card["id"])
+            if row["activity"] >= 49:
+                drop = await self.app.claims.create_drop(message.guild.id)
                 channel = self.get_channel(row["drop_channel"])
-                if channel:
+                if isinstance(channel, discord.abc.Messageable):
                     await channel.send(
                         "GumaBot server drop — first claim wins!",
                         view=buttons([("Claim", f"drop:{drop}")]),

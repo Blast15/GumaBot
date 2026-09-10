@@ -76,3 +76,4 @@ Generated from registered discord.py slash commands. Arguments in brackets are o
 | `/wishlist add` | `card_id` | Add a catalog card to your wishlist |
 | `/wishlist list` | `` | Show your wishlist |
 | `/wishlist remove` | `card_id` | Remove a catalog card from your wishlist |
+

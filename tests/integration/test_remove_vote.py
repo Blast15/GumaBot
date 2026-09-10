@@ -29,7 +29,7 @@ def test_upgrade_removes_retired_vote_schema_preserves_wallet_and_ledger(tmp_pat
         conn.execute("INSERT INTO reminder_preferences VALUES (1,'daily',1,0)")
     migrate(path)
     migrate(path)
-    assert check(path) == 4
+    assert check(path) == len(MIGRATIONS)
     with sqlite3.connect(path) as conn:
         assert not conn.execute(
             "SELECT name FROM sqlite_master WHERE name LIKE 'vote_%'"

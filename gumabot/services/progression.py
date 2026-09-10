@@ -55,7 +55,7 @@ class Progression(Service):
         async with self.db.transaction() as tx:
             await self.user(tx, uid)
             await tx.execute(
-                "INSERT INTO reminder_preferences VALUES (:u,:k,:e,0) ON CONFLICT(user_id,kind) DO UPDATE SET enabled=:e",
+                "INSERT INTO reminder_preferences(user_id,kind,enabled,last_sent) VALUES (:u,:k,:e,0) ON CONFLICT(user_id,kind) DO UPDATE SET enabled=:e",
                 u=uid,
                 k=kind,
                 e=int(enabled),

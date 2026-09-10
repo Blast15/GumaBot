@@ -4,6 +4,7 @@ import argparse
 import os
 import sqlite3
 import sys
+from contextlib import closing
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -27,7 +28,7 @@ if __name__ == "__main__":
     destination.parent.mkdir(parents=True, exist_ok=True)
     if destination.exists():
         print("Pre-restore backup:", backup(destination))
-    with sqlite3.connect(source) as src, sqlite3.connect(destination) as dst:
+    with closing(sqlite3.connect(source)) as src, closing(sqlite3.connect(destination)) as dst:
         src.backup(dst)
     check(destination)
     print("Restore complete.")

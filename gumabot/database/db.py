@@ -1,9 +1,12 @@
 import asyncio
+import logging
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from sqlalchemy import event, text
 from sqlalchemy.engine import URL
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from .migrations import migrate
@@ -47,7 +50,21 @@ class Database:
     @asynccontextmanager
     async def transaction(self):
         async with self.engine.connect() as connection:
-            await connection.execute(text("BEGIN IMMEDIATE"))
+            started = time.monotonic()
+            try:
+                await connection.execute(text("BEGIN IMMEDIATE"))
+            except OperationalError:
+                logging.getLogger(__name__).exception(
+                    "SQLite transaction could not begin", extra={"event": "db_begin_error"}
+                )
+                raise
+            logging.getLogger(__name__).debug(
+                "SQLite writer acquired",
+                extra={
+                    "event": "db_writer_wait",
+                    "duration_ms": (time.monotonic() - started) * 1000,
+                },
+            )
             try:
                 yield Transaction(connection)
                 await connection.commit()

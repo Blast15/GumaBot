@@ -1,3 +1,13 @@
+# Reliability update — 2026-09-10
+
+This section supersedes historical totals below. The new CI runs on Python 3.12
+Linux and Windows, with branch coverage enabled and a hard 85% gate. Results for
+this change are recorded in `docs/RELIABILITY.md`; GitHub Actions results are the
+authority for Windows execution. No full live Discord E2E, 24–72h soak or remote
+backup restore is claimed. See `docs/OPERATIONS.md` for executable procedures.
+
+---
+
 # GumaBot — báo cáo triển khai và kiểm thử
 
 Bản bàn giao có entry point `main.py`; lệnh Windows chính thức là `py main.py`. Source được tổ chức thành modules, không yêu cầu container hay dịch vụ dữ liệu bên ngoài.

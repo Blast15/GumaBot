@@ -6,8 +6,8 @@ from conftest import mint, users
 from sqlalchemy.exc import IntegrityError
 
 from gumabot.cogs.queries import query
-from gumabot.services.engines import QUESTIONS
 from gumabot.services.errors import DomainError
+from gumabot.services.quiz import question_at
 
 
 async def test_currency_ledger_immutable_and_rollback(app):
@@ -198,7 +198,7 @@ async def test_game_sessions_and_quiz_stats(app):
         async with app.db.read() as tx:
             row = await tx.one("SELECT state FROM quiz_attempts WHERE id=:id", id=key)
         state = json.loads(row["state"])
-        answer = QUESTIONS[state["order"][pos]][2]
+        answer = question_at(state, pos)[2]
         result = await app.gameplay.session_action(1, key, str(answer), pos)
     assert result["complete"] and result["score"] == 10
     with pytest.raises(DomainError):

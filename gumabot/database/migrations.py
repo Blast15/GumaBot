@@ -1,7 +1,8 @@
 """Sequential, transactional SQLite migrations; never execute DDL in game services."""
 
 import sqlite3
-from datetime import datetime, timezone
+from contextlib import closing
+from datetime import UTC, datetime
 from pathlib import Path
 
 MIGRATIONS = [
@@ -136,21 +137,29 @@ MIGRATIONS.append(
 )
 
 
+MIGRATIONS.append(
+    [
+        "ALTER TABLE reminder_preferences ADD COLUMN next_check_at INTEGER NOT NULL DEFAULT 0",
+        "CREATE INDEX reminder_scan ON reminder_preferences(enabled,next_check_at)",
+        "CREATE TABLE reminder_deliveries (user_id INTEGER NOT NULL, kind TEXT NOT NULL, due_at INTEGER NOT NULL, status TEXT NOT NULL CHECK(status IN ('pending','claimed','sent','failed')), attempts INTEGER NOT NULL DEFAULT 0, next_attempt_at INTEGER NOT NULL, claim_token TEXT, PRIMARY KEY(user_id,kind), FOREIGN KEY(user_id,kind) REFERENCES reminder_preferences(user_id,kind) ON DELETE CASCADE)",
+        "CREATE INDEX reminder_retry ON reminder_deliveries(status,next_attempt_at)",
+    ]
+)
+
+
 def backup(path: Path, destination: Path | None = None) -> Path:
     if not path.exists():
         raise ValueError("Database does not exist")
     folder = path.parent / "backups"
     folder.mkdir(parents=True, exist_ok=True)
-    destination = (
-        destination or folder / f"gumabot-{datetime.now(timezone.utc):%Y%m%d-%H%M%S-%f}.db"
-    )
-    with sqlite3.connect(path) as source, sqlite3.connect(destination) as target:
+    destination = destination or folder / f"gumabot-{datetime.now(UTC):%Y%m%d-%H%M%S-%f}.db"
+    with closing(sqlite3.connect(path)) as source, closing(sqlite3.connect(destination)) as target:
         source.backup(target)
     return destination
 
 
 def check(path: Path):
-    with sqlite3.connect(path) as conn:
+    with closing(sqlite3.connect(path)) as conn:
         if conn.execute("PRAGMA integrity_check").fetchall() != [("ok",)]:
             raise ValueError("Database integrity check failed")
         if conn.execute("PRAGMA foreign_key_check").fetchall():

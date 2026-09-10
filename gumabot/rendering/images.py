@@ -94,7 +94,7 @@ class Images:
         height = ((len(cards) + 2) // 3) * 450
         image = Image.new("RGB", (width, max(height, 450)), "#111B2E")
         draw = ImageDraw.Draw(image)
-        for i, (card, blob) in enumerate(zip(cards, blobs)):
+        for i, (card, blob) in enumerate(zip(cards, blobs, strict=True)):
             x, y = (i % 3) * 300, (i // 3) * 450
             draw.rounded_rectangle(
                 (x + 6, y + 6, x + 294, y + 444),

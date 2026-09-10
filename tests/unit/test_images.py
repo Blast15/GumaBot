@@ -48,7 +48,9 @@ async def test_image_rejects_bad_content_and_large_payload(tmp_path):
     ]:
         async with httpx.AsyncClient(
             transport=httpx.MockTransport(
-                lambda r: httpx.Response(200, headers=headers, content=body)
+                lambda r, headers=headers, body=body: httpx.Response(
+                    200, headers=headers, content=body
+                )
             )
         ) as client:
             images = Images(client, tmp_path)

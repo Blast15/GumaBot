@@ -3,8 +3,9 @@ import logging
 
 import discord
 
-from ..services.engines import QUESTIONS, blackjack_total
+from ..services.engines import blackjack_total
 from ..services.errors import DomainError
+from ..services.quiz import question_at
 
 log = logging.getLogger(__name__)
 
@@ -56,7 +57,7 @@ GUIDE = [
 
 
 class ReportModal(discord.ui.Modal, title="GumaBot feedback"):
-    body = discord.ui.TextInput(
+    body: discord.ui.TextInput = discord.ui.TextInput(
         label="Bug or feedback", style=discord.TextStyle.paragraph, min_length=10, max_length=2000
     )
 
@@ -74,7 +75,7 @@ class ReportModal(discord.ui.Modal, title="GumaBot feedback"):
 
 
 class GuessModal(discord.ui.Modal, title="Name the Pokémon"):
-    answer = discord.ui.TextInput(label="Pokémon name", max_length=100)
+    answer: discord.ui.TextInput = discord.ui.TextInput(label="Pokémon name", max_length=100)
 
     def __init__(self, app, key):
         super().__init__()
@@ -103,7 +104,7 @@ async def show_session(interaction, app, key):
     state, kind = json.loads(row["state"]), row["kind"]
     if kind == "quiz":
         pos = state["position"]
-        question, options, _ = QUESTIONS[state["order"][pos]]
+        question, options, _ = question_at(state, pos)
         await send(
             interaction,
             f"Quiz {pos + 1}/10",

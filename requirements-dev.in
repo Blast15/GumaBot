@@ -1,0 +1,14 @@
+-r requirements.in
+-c requirements.txt
+pytest>=9.0.3,<10
+pytest-asyncio>=0.24,<2
+pytest-cov>=6,<8
+hypothesis>=6,<7
+ruff>=0.9,<1
+mypy>=1.15,<3
+pip-audit>=2.9,<3
+pip-tools==7.6.1
+build>=1,<2
+setuptools==84.0.0
+# pytest uses colorama on Windows; include it in the cross-platform lock.
+colorama==0.4.6

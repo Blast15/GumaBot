@@ -38,7 +38,7 @@ def test_energy_overflow_and_clock_reversal():
 @given(st.integers(0, 100), st.integers(0, 100000))
 def test_grade_bounds(score, seed):
     grades, final = subgrades(random.Random(seed), score)
-    assert all(1 <= g <= 10 and g * 2 == int(g * 2) for g in grades + [final])
+    assert all(1 <= g <= 10 and g * 2 == int(g * 2) for g in [*grades, final])
     assert condition(score)
 
 
