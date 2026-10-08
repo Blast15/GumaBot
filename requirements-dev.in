@@ -3,9 +3,9 @@
 pytest>=9.0.3,<10
 pytest-asyncio>=0.24,<2
 pytest-cov>=6,<8
-hypothesis>=6,<7
-ruff>=0.9,<1
-mypy>=1.15,<3
+hypothesis>=6.168.3,<7
+ruff>=0.16.10,<1
+mypy>=2.4.0,<3
 pip-audit>=2.9,<3
 pip-tools==7.6.1
 build>=1,<2
